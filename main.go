@@ -2,13 +2,29 @@ package main
 
 import (
 	"backup_categorizer/pkg"
+	"fmt"
 	"os"
 	"time"
 )
 
 func main() {
 	startTime := time.Now()
+	process(pkg.GetSubCommand(), startTime)
+}
 
+func process(subcommand string, startTime time.Time) {
+	switch subcommand {
+	case "org-dir":
+		copyDirs(startTime)
+	case "img-sort":
+		// TODO implement me
+	default:
+		fmt.Println("invalid subcommand expected 'org-dir' or 'sort-img' subcommand")
+		os.Exit(1)
+	}
+}
+
+func copyDirs(startTime time.Time) {
 	o, err := pkg.GetNewOperator()
 	if err != nil {
 		panic(err)
@@ -23,6 +39,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	if err := o.CreateSubdirs(o.Flags.DstPath, rules.Rules); err != nil {
 		panic(err)
 	}
@@ -50,5 +67,3 @@ func main() {
 		}()
 	}
 }
-
-// TODO: check priv&public funcs

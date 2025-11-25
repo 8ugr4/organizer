@@ -64,3 +64,10 @@ func GetFlags(args []string) Flags {
 	}
 	//TODO: separate img-sort and org-dir subcommand flag functions or structs. (find a better design method)
 }
+
+func GetSubCommand() string {
+	if len(os.Args) < 2 {
+		fmt.Println("expected 'org-dir' or 'sort-img' subcommand")
+	}
+	return os.Args[1]
+}
