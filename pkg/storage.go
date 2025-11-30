@@ -9,10 +9,12 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"syscall"
+	"time"
 )
 
 const (
@@ -91,6 +93,9 @@ func (o *Operator) BuildStorageMaps(c *Config) {
 		}
 		if rule.SeparateExists() {
 			o.Storage.SubDirs[rule.Category] = append(o.Storage.SubDirs[rule.Category], rule.Separate...)
+			if err := o.initExifTool(); err != nil {
+				panic(err)
+			}
 		}
 		if rule.Sort != "" {
 			o.Storage.SortMap[rule.Category] = rule.Sort
@@ -205,6 +210,80 @@ func uniqueDstPath(dstBasePath, dstDir, specialDir, baseName string) string {
 	}
 
 	return dstNewPath
+}
+
+func (o *Operator) initExifTool() error {
+	et, err := exiftool.NewExiftool()
+	if err != nil {
+		return err
+	}
+	o.Storage.Exif = et
+	return nil
+}
+
+// getFileDate tries EXIF -> ModTime -> regex from filename and returns either month or year as string
+// periodType is "month" or "year"
+func (o *Operator) getFileDate(fp, regexPattern, periodType string) (string, error) { //nolint:unused
+	f, err := os.Open(fp)
+	if err != nil {
+		return "", err
+	}
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(f)
+
+	var timePeriod string
+	et := o.Storage.Exif
+
+	fileInfos := et.ExtractMetadata(fp)
+	for _, fileInfo := range fileInfos {
+		if fileInfo.Err != nil {
+			return "", fileInfo.Err
+		}
+		if date, exists := fileInfo.Fields["CreateDate"]; exists {
+			timePeriod = date.(string) //FIXME
+		}
+	}
+
+	//FIXME
+	if timePeriod == "" {
+		re := regexp.MustCompile(regexPattern)
+		matches := re.FindStringSubmatch(fp)
+		if len(matches) > 1 {
+			dateStr := matches[1]
+
+			layouts := []string{
+				"20060102_150405", // YEAR MONTH DAY_HOUR MINUTE SECOND
+				time.DateTime,     // "2006-01-02 15:04:05"
+				"20060102",        // YEAR MONTH DAY
+				time.DateOnly,     // "YEAR-MONTH-DAY"
+			}
+			for _, layout := range layouts {
+				if t, err := time.Parse(layout, dateStr); err == nil {
+					timePeriod = t.String()
+					break
+				}
+			}
+		}
+	}
+	parseTime := func(timePeriod, periodType string) string {
+		//FIXME
+		switch periodType {
+		case "month":
+			return fmt.Sprintf("something %s", timePeriod)
+		case "year":
+			return fmt.Sprintf("something %s", timePeriod)
+		default:
+			return ""
+		}
+	}(timePeriod, periodType)
+	if parseTime == "" {
+		return "", fmt.Errorf("invalid periodType %s, must be 'month' or 'year'", periodType)
+	}
+	return parseTime, nil
 }
 
 func (o *Operator) Copy(dstPath, dstDir, specialDir, fileAbsolutePath string) error {

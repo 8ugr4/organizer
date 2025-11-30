@@ -51,7 +51,6 @@ func GetFlags(args []string) Flags {
 		slog.Warn("path for rules file is empty, going to use default settings from 'rules.yaml'")
 		*rulePath = "./rules.yaml"
 	}
-
 	return Flags{
 		SrcPath:  *srcPath,
 		DstPath:  *dstPath,
