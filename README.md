@@ -3,7 +3,7 @@ Lightweight CLI tool written in Go that copies files from a source directory to 
 
 ### Requirements
 
-`organizer` uses [go-exiftool](https://github.com/barasher/go-exiftool)
+`organized-copy` uses [go-exiftool](https://github.com/barasher/go-exiftool)
 
 **go-exiftool** needs [ExifTool](https://www.sno.phy.queensu.ca/~phil/exiftool/) to be installed.
 
@@ -33,7 +33,6 @@ Get the binary from releases, or clone the repository and `make build`.
 - **WIP** 'name_contains' and 'priority_order' is still under development.
 
 ## Example
-
 `testDir_cp`: categorized and sorted directory after the run.
 
 ```shell
