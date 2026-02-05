@@ -8,7 +8,11 @@ import (
 )
 
 func Test_initExifTool(t *testing.T) {
-	o, err := GetNewOperator()
+	o,err := GetNewOperator()
+	require.NoError(t, err)
+	require.Nil(t, o.Storage.Exif)
+
+	err = o.initExifTool()
 	require.NoError(t, err)
 	require.NotNil(t, o.Storage.Exif)
 }
