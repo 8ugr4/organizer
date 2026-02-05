@@ -9,7 +9,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -221,9 +220,11 @@ func (o *Operator) initExifTool() error {
 	return nil
 }
 
+var ErrorNoCreateDate = errors.New("given file doesn't have a CreateDate field or we failed to find it")
+
 // getFileDate tries EXIF -> ModTime -> regex from filename and returns either month or year as string
 // periodType is "month" or "year"
-func (o *Operator) getFileDate(fp, regexPattern, periodType string) (string, error) { //nolint:unused
+func (o *Operator) getFileDate(fp, periodType string) (string, error) { //nolint:unused
 	f, err := os.Open(fp)
 	if err != nil {
 		return "", err
@@ -235,55 +236,41 @@ func (o *Operator) getFileDate(fp, regexPattern, periodType string) (string, err
 		}
 	}(f)
 
-	exifTool := o.Storage.Exif
-
 	var timePeriod string
-	fileInfos := exifTool.ExtractMetadata(fp)
+	fileInfos := o.Storage.Exif.ExtractMetadata(f.Name())
 	for _, fileInfo := range fileInfos {
 		if fileInfo.Err != nil {
 			return "", fileInfo.Err
 		}
 		if date, exists := fileInfo.Fields["CreateDate"]; exists {
-			timePeriod = date.(string) //FIXME
+			timePeriod = date.(string)
 		}
 	}
 
-	//FIXME
-	if timePeriod == "" {
-		re := regexp.MustCompile(regexPattern)
-		matches := re.FindStringSubmatch(fp)
-		if len(matches) > 1 {
-			dateStr := matches[1]
-
-			layouts := []string{
-				"20060102_150405", // YEAR MONTH DAY_HOUR MINUTE SECOND
-				time.DateTime,     // "2006-01-02 15:04:05"
-				"20060102",        // YEAR MONTH DAY
-				time.DateOnly,     // "YEAR-MONTH-DAY"
+	if timePeriod != "" {
+		parseTime, err := func(timePeriod, periodType string) (string, error) {
+			ta, timeError := time.Parse("2006:01:02 15:04:05", timePeriod)
+			if timeError != nil {
+				return "", timeError
 			}
-			for _, layout := range layouts {
-				if t, err := time.Parse(layout, dateStr); err == nil {
-					timePeriod = t.String()
-					break
-				}
+			switch periodType {
+			case "month":
+				return ta.Format("2006-01"), nil
+			case "year":
+				return ta.Format("2006"), nil
+			default:
+				return "", errors.New("no time thingy m8")
 			}
+		}(timePeriod, periodType)
+		if err != nil {
+			return "", err
 		}
-	}
-	parseTime := func(timePeriod, periodType string) string {
-		//FIXME
-		switch periodType {
-		case "month":
-			return fmt.Sprintf("something %s", timePeriod)
-		case "year":
-			return fmt.Sprintf("something %s", timePeriod)
-		default:
-			return ""
+		if parseTime == "" {
+			return "", fmt.Errorf("invalid periodType %s, must be 'month' or 'year'", periodType)
 		}
-	}(timePeriod, periodType)
-	if parseTime == "" {
-		return "", fmt.Errorf("invalid periodType %s, must be 'month' or 'year'", periodType)
+		return parseTime, nil
 	}
-	return parseTime, nil
+	return "", ErrorNoCreateDate
 }
 
 func (o *Operator) Copy(dstPath, dstDir, specialDir, fileAbsolutePath string) error {
