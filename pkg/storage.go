@@ -213,11 +213,11 @@ func uniqueDstPath(dstBasePath, dstDir, specialDir, baseName string) string {
 }
 
 func (o *Operator) initExifTool() error {
-	et, err := exiftool.NewExiftool()
+	exifTool, err := exiftool.NewExiftool()
 	if err != nil {
 		return err
 	}
-	o.Storage.Exif = et
+	o.Storage.Exif = exifTool
 	return nil
 }
 
@@ -235,10 +235,10 @@ func (o *Operator) getFileDate(fp, regexPattern, periodType string) (string, err
 		}
 	}(f)
 
-	var timePeriod string
-	et := o.Storage.Exif
+	exifTool := o.Storage.Exif
 
-	fileInfos := et.ExtractMetadata(fp)
+	var timePeriod string
+	fileInfos := exifTool.ExtractMetadata(fp)
 	for _, fileInfo := range fileInfos {
 		if fileInfo.Err != nil {
 			return "", fileInfo.Err
