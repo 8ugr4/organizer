@@ -220,6 +220,10 @@ var ErrorNoCreateDate = errors.New("given file doesn't have a CreateDate field o
 
 // getFileDate tries EXIF -> ModTime -> regex from filename and returns either month or year as string
 // periodType is "month" or "year"
+// TODO: next steps are:
+//  1. if  `sort: "year || month"` is defined in a `category` in `rules.yaml` file, then call this func with sort value.
+//  2. hold a years || months map, (so unique vals only), when getting returns from this func, and then mkdir() those keys.
+//  3. and then put the files in that order.
 func (o *Operator) getFileDate(fp, periodType string) (string, error) { //nolint:unused
 	f, err := os.Open(fp)
 	if err != nil {
