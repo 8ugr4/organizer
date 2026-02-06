@@ -61,6 +61,14 @@ func (o *Operator) initPool() {
 	})
 }
 
+func initExifTool() (*exiftool.Exiftool, error) {
+	exifTool, err := exiftool.NewExiftool()
+	if err != nil {
+		return nil, err
+	}
+	return exifTool, nil
+}
+
 func GetNewOperator() (*Operator, error) {
 	o := &Operator{
 		Storage:        *NewStorage(),
@@ -206,14 +214,6 @@ func uniqueDstPath(dstBasePath, dstDir, specialDir, baseName string) string {
 	}
 
 	return dstNewPath
-}
-
-func initExifTool() (*exiftool.Exiftool, error) {
-	exifTool, err := exiftool.NewExiftool()
-	if err != nil {
-		return nil, err
-	}
-	return exifTool, nil
 }
 
 var ErrorNoCreateDate = errors.New("given file doesn't have a CreateDate field or we failed to find it")
