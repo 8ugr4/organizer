@@ -179,37 +179,8 @@ func uniqueDstPath(dstBasePath, dstDir, specialDir, baseName string) string {
 	if specialDir != "" {
 		dstNewPath = path.Join(dstBasePath, dstDir, specialDir, baseName)
 		// create the specialDir if it doesn't exist. this is only required for year/month sort things.
-		if _, err := os.Stat(path.Join(dstBasePath, dstDir, specialDir)); err != nil {
-			// if the directory doesn't exist, create it
-			if os.IsNotExist(err) {
-				// if specialDir has '-', then it's a "YEAR-MONTH" dir.
-				if strings.Contains(specialDir, "-") {
-					yearMonths := strings.Split(specialDir, "-")
-					year := yearMonths[0]
-					month := yearMonths[1]
-					// if the directory doesn't exist, create first year then the month
-					if _, err := os.Stat(path.Join(dstBasePath, dstDir, year)); err != nil {
-						if os.IsNotExist(err) {
-							if errCreateDirectory := os.Mkdir(path.Join(dstBasePath, dstDir, year), syscall.O_CREAT|syscall.O_EXCL|syscall.O_WRONLY); errCreateDirectory != nil {
-								panic(errCreateDirectory)
-							}
-						}
-					}
-					if _, err := os.Stat(path.Join(dstBasePath, dstDir, year, month)); err != nil {
-						if os.IsNotExist(err) {
-							if errCreateDirectory := os.Mkdir(path.Join(dstBasePath, dstDir, year, month), syscall.O_CREAT|syscall.O_EXCL|syscall.O_WRONLY); errCreateDirectory != nil {
-								panic(errCreateDirectory)
-							}
-						}
-					}
-					dstNewPath = path.Join(dstBasePath, dstDir, year, month, baseName)
-				} else {
-					// if we don't have year stuff
-					if errCreateDirectory := os.Mkdir(path.Join(dstBasePath, dstDir, specialDir), syscall.O_CREAT|syscall.O_EXCL|syscall.O_WRONLY); errCreateDirectory != nil {
-						panic(errCreateDirectory)
-					}
-				}
-			}
+		if err := createDirectory(path.Join(dstBasePath, dstDir, specialDir)); err != nil {
+			panic(err)
 		}
 		// create the specialDir if it doesn't exist. this is only required for year/month sort things.
 		if err := createDirectory(path.Join(dstBasePath, dstDir, specialDir)); err != nil {
