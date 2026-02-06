@@ -20,8 +20,12 @@ func initExifTool() (*exiftool.Exiftool, error) {
 	return exifTool, nil
 }
 
+// getFileDate tries EXIF -> ModTime -> regex from filename and returns either month or year as string
 // getFileDate tries EXIF -> CreateDate and returns either month or year as string
 // periodType is "month" or "year"
+// TODO: next steps are:
+//  1. if  `sort: "year || month"` is defined in a `category` in `rules.yaml` file, then call this func with sort value.
+//  2. hold a years || months map, (so unique vals only), when getting returns from this func, and then mkdir() those keys.
 // if file doesn't have exif data return "" string
 func (o *Operator) getFileDate(fp, periodType string) (string, error) { //nolint:unused
 	f, err := os.Open(fp)
