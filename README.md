@@ -33,6 +33,7 @@ Get the binary from releases, or clone the repository and `make build`.
 - **WIP** 'name_contains' and 'priority_order' is still under development.
 
 ## Example
+
 `testDir_cp`: categorized and sorted directory after the run.
 
 ```shell
