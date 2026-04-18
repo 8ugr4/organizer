@@ -87,16 +87,3 @@ func createDirectory(path string) error {
 
 	return nil
 }
-
-func createDirectory(path string) error {
-	if _, err := os.Stat(path); err != nil {
-		if os.IsNotExist(err) {
-			if errCreateDirectory := os.MkdirAll(path, syscall.O_CREAT|syscall.O_EXCL|syscall.O_WRONLY); errCreateDirectory != nil {
-				return errCreateDirectory
-			}
-		} else {
-			return err
-		}
-	}
-	return nil
-}

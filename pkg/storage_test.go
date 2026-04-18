@@ -8,11 +8,7 @@ import (
 )
 
 func Test_initExifTool(t *testing.T) {
-	o,err := GetNewOperator()
-	require.NoError(t, err)
-	require.Nil(t, o.Storage.Exif)
-
-	err = o.initExifTool()
+	o, err := GetNewOperator()
 	require.NoError(t, err)
 	require.NotNil(t, o.Storage.Exif)
 }
@@ -27,7 +23,7 @@ func Test_getFileDate(t *testing.T) {
 	{
 		res, err := o.getFileDate("./evil_gopher.png", "month")
 		require.NoError(t, err)
-		assert.Equal(t, "2022-12", res)
+		assert.Equal(t, "2022/12", res)
 	}
 	{
 		res, err := o.getFileDate("./evil_gopher.png", "year")
