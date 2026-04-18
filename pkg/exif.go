@@ -9,13 +9,14 @@ import (
 	"time"
 )
 
-var ErrorNoCreateDate = errors.New("given file doesn't have a CreateDate field or we failed to find it")
+var ErrNoCreateDate = errors.New("given file doesn't have a CreateDate field or we failed to find it")
 
 func initExifTool() (*exiftool.Exiftool, error) {
 	exifTool, err := exiftool.NewExiftool()
 	if err != nil {
 		return nil, err
 	}
+
 	return exifTool, nil
 }
 
@@ -54,6 +55,7 @@ func (o *Operator) getFileDate(fp, periodType string) (string, error) { //nolint
 			switch periodType {
 			case "month":
 				yearmonth := strings.Split(ta.Format("2006-01"), "-")
+
 				return strings.Join(yearmonth, "/"), nil
 			case "year":
 				return ta.Format("2006"), nil
@@ -67,7 +69,9 @@ func (o *Operator) getFileDate(fp, periodType string) (string, error) { //nolint
 		if parseTime == "" {
 			return "", fmt.Errorf("invalid periodType %s, must be 'month' or 'year'", periodType)
 		}
+
 		return parseTime, nil
 	}
-	return "", ErrorNoCreateDate
+
+	return "", ErrNoCreateDate
 }

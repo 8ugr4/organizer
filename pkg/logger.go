@@ -20,9 +20,6 @@ type CSVLogger struct {
 
 // NewCSVLogger creates or truncates a CSV file and writes the header row.
 func NewCSVLogger(path string) (*CSVLogger, error) {
-	if path == "" {
-		return nil, nil
-	}
 	f, err := os.Create(path)
 	if err != nil {
 		return nil, err
@@ -32,9 +29,11 @@ func NewCSVLogger(path string) (*CSVLogger, error) {
 	// header
 	if err := w.Write([]string{"sourceFilePath", "destinationFilePath", "fileName", "status"}); err != nil {
 		err2 := f.Close()
+
 		return nil, fmt.Errorf("%w,%w", err, err2)
 	}
 	w.Flush()
+
 	return &CSVLogger{writer: w, file: f}, nil
 }
 
@@ -47,6 +46,7 @@ func (l *CSVLogger) Log(status, source, fileName, destination string) error {
 		return err
 	}
 	l.writer.Flush()
+
 	return l.writer.Error()
 }
 
@@ -54,6 +54,7 @@ func (l *CSVLogger) Close() error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	l.writer.Flush()
+
 	return l.file.Close()
 }
 

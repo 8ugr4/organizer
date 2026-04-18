@@ -34,6 +34,6 @@ func Test_getFileDate(t *testing.T) {
 	f, err := os.Create("random.png")
 	require.NoError(t, err)
 	_, err = o.getFileDate(f.Name(), "year")
-	require.Equal(t, err, ErrorNoCreateDate)
+	require.Equal(t, err, ErrNoCreateDate)
 	require.NoError(t, os.Remove(f.Name()))
 }

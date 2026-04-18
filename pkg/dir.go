@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"math"
@@ -41,6 +42,7 @@ func DirSize(path string) (int64, error) {
 			size += fileInfo.Size()
 			mu.Unlock()
 		}
+
 		return nil
 	}
 
@@ -50,6 +52,8 @@ func DirSize(path string) (int64, error) {
 
 	return size, nil
 }
+
+var oneGb = math.Pow(10, 9) //nolint:mnd
 
 func ValidateDir(dirp string) error {
 	fp, err := os.Stat(dirp)
@@ -61,11 +65,12 @@ func ValidateDir(dirp string) error {
 		if err != nil {
 			return err
 		}
-		dirSizeGb := float64(dirSize) / math.Pow(10, 9)
+		dirSizeGb := float64(dirSize) / oneGb
 		slog.Info("", slog.String(dirp, "is a directory"), slog.String("size", fmt.Sprint(dirSizeGb, " bytes")))
 	} else {
-		return fmt.Errorf("path is not dir")
+		return errors.New("path is not dir")
 	}
+
 	return nil
 }
 
@@ -79,5 +84,6 @@ func createDirectory(path string) error {
 			return err
 		}
 	}
+
 	return nil
 }

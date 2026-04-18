@@ -52,12 +52,11 @@ type Operator struct {
 	mu             sync.Mutex
 }
 
-func (o *Operator) initPool(n int) {
+const defaultPoolSize = 8
+
+func (o *Operator) initPool() {
 	o.once.Do(func() {
-		if n <= 0 {
-			n = 8
-		}
-		o.sem = make(chan struct{}, n)
+		o.sem = make(chan struct{}, defaultPoolSize)
 	})
 }
 
@@ -72,13 +71,14 @@ func GetNewOperator() (*Operator, error) {
 		once:           sync.Once{},
 		mu:             sync.Mutex{},
 	}
-	o.initPool(8)
+	o.initPool()
 
 	var err error
 	o.Storage.Exif, err = initExifTool()
 	if err != nil {
 		return nil, err
 	}
+
 	return o, nil
 }
 
@@ -105,8 +105,10 @@ func (o *Operator) GetSeparateSubdirs(category, ext string) string {
 				return sub
 			}
 		}
+
 		return ""
 	}
+
 	return ""
 }
 
@@ -114,6 +116,7 @@ func (o *Operator) GetSortSubDirs(category string) (string, bool) {
 	if sortType, exists := o.Storage.SortMap[category]; exists {
 		return sortType, true
 	}
+
 	return "", false
 }
 
@@ -121,6 +124,7 @@ func (o *Operator) GetExtensionCategory(ext string) (string, bool) {
 	if val, ok := o.Storage.Extensions[ext]; ok {
 		return val, true
 	}
+
 	return unknown, false
 }
 
@@ -130,9 +134,11 @@ func (o *Operator) AddType(ext, fp string) string {
 	if !exists {
 		slog.Warn("unknown extension, doesn't match to rules", "extension", ext)
 		slog.Warn("copying to the unknown dir", "filepath", fp)
+
 		return unknown
 	}
 	o.Storage.OutDirectories[category] = append(o.Storage.OutDirectories[category], fp)
+
 	return category
 }
 
@@ -157,6 +163,7 @@ func (o *Operator) CreateSubdirs(dstBasePath string, rules []Rule) error {
 			}
 		}
 	}
+
 	return nil
 }
 
@@ -188,13 +195,15 @@ func uniqueDstPath(dstBasePath, dstDir, specialDir, baseName string) string {
 			slog.Error("stat call failed during trying to create a unique destination path", "PATH:", dstNewPath)
 			panic(err)
 		}
-		if specialDir == "" {
-			dstNewPath = path.Join(path.Dir(original), fmt.Sprintf("%s_%d%s", base, i, ext))
-		} else {
-			dstNewPath = path.Join(path.Dir(original), fmt.Sprintf("%s_%d%s", base, i, ext))
-		}
+		// FIXME: wtf is going on here xD
+		// if specialDir == "" {
+		// dstNewPath = path.Join(path.Dir(original), fmt.Sprintf("%s_%d%s", base, i, ext))
+		// } else {
+		dstNewPath = path.Join(path.Dir(original), fmt.Sprintf("%s_%d%s", base, i, ext))
+		//}
 		i++
 	}
+
 	return dstNewPath
 }
 
@@ -250,19 +259,23 @@ func (o *Operator) skipcheck(fp string) bool {
 	if err != nil {
 		slog.Warn("Skipping blocked file", "path", fp, "error", err)
 		o.Storage.Unprocessed = append(o.Storage.Unprocessed, fp)
+
 		return true
 	}
 	if !info.Mode().IsRegular() {
 		slog.Warn("Skipping blocked file", "path", fp, "error", "isn't a regular file")
 		o.Storage.Unprocessed = append(o.Storage.Unprocessed, fp)
+
 		return true
 	}
 
 	if info.Size() == 0 {
 		slog.Warn("Skipping blocked file", "path", fp, "error", "has size 0")
 		o.Storage.Unprocessed = append(o.Storage.Unprocessed, fp)
+
 		return true
 	}
+
 	return false
 }
 
@@ -276,15 +289,18 @@ func (o *Operator) getSpecialSubDirNames(typeDir, ext, fp string) (string, error
 		sortDir, err = o.getFileDate(fp, sortDir)
 		// if the error is because we couldn't get exif date, then ignore the error
 		// otherwise return error.
-		if err != nil && !errors.Is(err, ErrorNoCreateDate) {
+		if err != nil && !errors.Is(err, ErrNoCreateDate) {
 			return "", err
 		}
 		if sortDir != "" {
 			specialSubDir = path.Join(specialSubDir, sortDir)
 		}
 	}
+
 	return specialSubDir, nil
 }
+
+const defaultSemLimit = 10
 
 func (o *Operator) AsyncProcessDir(dirpath string, r bool) (int, error) {
 	entries, err := os.ReadDir(dirpath)
@@ -299,7 +315,7 @@ func (o *Operator) AsyncProcessDir(dirpath string, r bool) (int, error) {
 	processed := int64(0)
 	extensions := make([]string, 0)
 	var extMutex, unprocMutex = sync.Mutex{}, sync.Mutex{}
-	sem := make(chan struct{}, 10)
+	sem := make(chan struct{}, defaultSemLimit)
 	var wg sync.WaitGroup
 
 	for _, entry := range entries {
@@ -309,6 +325,7 @@ func (o *Operator) AsyncProcessDir(dirpath string, r bool) (int, error) {
 			if _, err := o.AsyncProcessDir(fp, true); err != nil {
 				return 0, err
 			}
+
 			continue
 		}
 		if o.skipcheck(fp) {
@@ -337,13 +354,14 @@ func (o *Operator) AsyncProcessDir(dirpath string, r bool) (int, error) {
 				unprocMutex.Lock()
 				o.Storage.Unprocessed = append(o.Storage.Unprocessed, fp)
 				unprocMutex.Unlock()
+
 				return
 			}
 
 			atomic.AddInt64(&processed, 1)
 			if !r {
-				pct := float64(atomic.LoadInt64(&processed)) / float64(total) * 100
-				if atomic.LoadInt64(&processed)%int64(max(1, total/20)) == 0 {
+				pct := float64(atomic.LoadInt64(&processed)) / float64(total) * 100 //nolint:mnd
+				if atomic.LoadInt64(&processed)%int64(max(1, total/20)) == 0 {      //nolint:mnd
 					slog.Info("progress", "completed", fmt.Sprintf("%.1f%%", pct))
 				}
 			}
@@ -379,6 +397,7 @@ func (o *Operator) ProcessDir(dirpath string, r bool) (int, error) {
 			if _, err := o.ProcessDir(fp, true); err != nil {
 				return 0, err
 			}
+
 			continue
 		}
 		if o.skipcheck(fp) {
@@ -400,8 +419,8 @@ func (o *Operator) ProcessDir(dirpath string, r bool) (int, error) {
 			return 0, err
 		}
 		processed++
-		percentage := float64(processed) / float64(total) * 100
-		if processed%max(1, total/20) == 0 && !r {
+		percentage := float64(processed) / float64(total) * 100 //nolint:mnd
+		if processed%max(1, total/20) == 0 && !r {              //nolint:mnd
 			slog.Info("progress", "completed", fmt.Sprintf("%.1f%%", percentage))
 		}
 		extensions = append(extensions, ext)
@@ -418,5 +437,6 @@ func (o *Operator) Operate() (int, error) {
 	case false:
 		return o.ProcessDir(o.Flags.SrcPath, false)
 	}
+
 	return 0, nil
 }

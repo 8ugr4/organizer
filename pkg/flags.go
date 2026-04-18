@@ -51,6 +51,7 @@ func GetFlags(args []string) Flags {
 		slog.Warn("path for rules file is empty, going to use default settings from 'rules.yaml'")
 		*rulePath = "./rules.yaml"
 	}
+
 	return Flags{
 		SrcPath:  *srcPath,
 		DstPath:  *dstPath,
@@ -62,11 +63,4 @@ func GetFlags(args []string) Flags {
 		Pattern:  *pattern,
 	}
 	//TODO: separate img-sort and org-dir subcommand flag functions or structs. (find a better design method)
-}
-
-func GetSubCommand() string {
-	if len(os.Args) < 2 {
-		fmt.Println("expected 'org-dir' or 'sort-img' subcommand")
-	}
-	return os.Args[1]
 }

@@ -28,9 +28,11 @@ func main() {
 	}
 	o.BuildStorageMaps(rules)
 
-	o.CsvHandler, err = pkg.NewCSVLogger(o.Flags.LogPath)
-	if err != nil {
-		panic(err)
+	if o.Flags.LogPath != "" {
+		o.CsvHandler, err = pkg.NewCSVLogger(o.Flags.LogPath)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	extensions, err := o.Operate()
