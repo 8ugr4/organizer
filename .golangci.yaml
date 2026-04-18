@@ -1,0 +1,48 @@
+version: "2"
+
+linters:
+  enable:
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - copyloopvar
+    - decorder
+    - dupl
+    - embeddedstructfieldcheck
+    - errname
+    - exptostd
+    - errcheck
+    - goconst
+    - gocritic
+    - gosec
+    - gosmopolitan
+    - govet
+    - grouper
+    - iface
+    - intrange
+    - loggercheck
+    - mirror
+    - mnd
+    - nestif
+    - nilerr
+    - nilnil
+    - nlreturn
+    - perfsprint
+    - prealloc
+    - predeclared
+    - sloglint
+    - tagalign
+    - testifylint
+    - thelper
+    - unconvert
+    - unparam
+    - usestdlibvars
+    - unused
+    - usetesting
+    - wastedassign
+    - whitespace
+
+  settings:
+    gosec:
+      excludes:
+        - G304 # LATER USE A HELPER FUNC WHICH WORKS WITH OS.ROOT THINGY AND REMOVE EXCLUSION

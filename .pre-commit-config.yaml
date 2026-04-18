@@ -44,11 +44,11 @@ repos:
     - --fix
     id: golangci-lint
   repo: https://github.com/golangci/golangci-lint
-  rev: v2.6.2
+  rev: v2.11.4
 - hooks:
   - id: commitizen
   - id: commitizen-branch
     stages:
     - pre-push
   repo: https://github.com/commitizen-tools/commitizen
-  rev: v4.13.5
+  rev: v4.13.10

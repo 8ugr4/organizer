@@ -9,5 +9,6 @@ func RemoveDuplicateStr(strSlice []string) []string {
 			list = append(list, item)
 		}
 	}
+
 	return list
 }
