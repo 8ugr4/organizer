@@ -1,7 +1,7 @@
 package main
 
 import (
-	"organizer/pkg"
+	"github.com/8ugr4/organizer/pkg"
 	"os"
 	"time"
 )

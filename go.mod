@@ -1,4 +1,4 @@
-module organizer
+module github.com/8ugr4/organizer
 
 go 1.26
 
