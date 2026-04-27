@@ -1,3 +1,5 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/8ugr4/organizer)](https://goreportcard.com/report/github.com/8ugr4/organizer)
+
 # organizer
 Lightweight CLI tool written in Go that copies files from a source directory to a destination directory while automatically organizing them into folders by type (audio, images, video, documents, other).
 
