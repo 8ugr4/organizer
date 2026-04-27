@@ -1,4 +1,4 @@
-module backup_categorizer
+module organizer
 
 go 1.26
 

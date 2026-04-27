@@ -1,7 +1,7 @@
 package main
 
 import (
-	"backup_categorizer/pkg"
+	"organizer/pkg"
 	"os"
 	"time"
 )
