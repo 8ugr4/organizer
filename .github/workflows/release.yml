@@ -1,13 +1,12 @@
 name: goreleaser
+permissions:
+  contents: write
 
 on:
   push:
     # run only against tags
     tags:
       - "*"
-
-permissions:
-  contents: write
 
 jobs:
   goreleaser:
